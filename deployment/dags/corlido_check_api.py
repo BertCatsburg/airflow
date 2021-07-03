@@ -45,6 +45,7 @@ with DAG('corlido_check_api_dbg_endpoint',
 	)
 
 
+
 	# TASK: Check Data Validity
 	processing_data = PythonOperator(
 		task_id='check_data',
@@ -52,7 +53,7 @@ with DAG('corlido_check_api_dbg_endpoint',
 	)
 
 
-	# TASK: Store the User in the Table wih Bash
+	# TASK: Dummy Debug
 	dummy = BashOperator(
 		task_id='zork',
 		bash_command='echo "Hello World"'
@@ -60,4 +61,4 @@ with DAG('corlido_check_api_dbg_endpoint',
 
 
 
-	is_api_available >> getting_data >> check_data >> zork
+	is_api_available >> getting_data >> processing_data >> dummy

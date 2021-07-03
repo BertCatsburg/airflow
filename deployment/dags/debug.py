@@ -27,11 +27,14 @@ with DAG('debug',
 		bash_command='echo "Hello World"'
 	)
 
-	# TASK: Print a message to somewhere
-	debug_message = BashOperator(
-		task_id='zork',
-		bash_command='echo "Hello To Yourself"'
-	)
-	debug_message >> zork
 
+
+	# TASK: Print a message to somewhere
+	another_debug_message = BashOperator(
+		task_id='another_debug_message',
+		bash_command='echo "Hello World to you too"'
+	)
+
+
+	debug_message.set_downstream(another_debug_message)
 

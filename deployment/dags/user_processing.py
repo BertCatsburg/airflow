@@ -1,4 +1,5 @@
 from airflow.models import DAG # Import the DAG Object
+
 from airflow.providers.sqlite.operators.sqlite import SqliteOperator
 from airflow.providers.http.sensors.http import HttpSensor
 from airflow.providers.http.operators.http import SimpleHttpOperator
@@ -14,7 +15,9 @@ default_args = {
 }
 
 def _processing_user(ti):
-	users = ti.xcom_pull(task_ids=['extracting_user'])
+	users = ti.xcom_pull(task_ids=['t03_extracting_user'])
+	print(users)
+	print(users[0])
 	if not len(users) or 'results' not in users[0]:
 		raise ValueError('User is empty')
 	user = users[0]['results'][0]
@@ -38,12 +41,13 @@ def _processing_user(ti):
 with DAG('user_processing',
 		schedule_interval='@daily',
 		default_args=default_args,
-		catchup=False) as dag:
+		catchup=False,
+		tags=['bert']) as dag:
 	# Define Tasks/Operators
 
 	# TASK: Create the Table
-	creating_table = SqliteOperator(
-		task_id='create_table',
+	t01_creating_table = SqliteOperator(
+		task_id='t01_creating_table',
 		sqlite_conn_id='db_sqlite',
 		sql='''
 			CREATE TABLE IF NOT EXISTS users (
@@ -58,15 +62,15 @@ with DAG('user_processing',
 	)
 
 	# TASK: HTTP HttpSensor
-	is_api_available = HttpSensor(
-		task_id='is_api_available',
+	t02_is_api_available = HttpSensor(
+		task_id='t02_is_api_available',
 		http_conn_id='user_api',
 		endpoint='api/'
 	)
 
 	#TASK: Extract the User
-	extracting_user = SimpleHttpOperator(
-		task_id='extracting_user',
+	t03_extracting_user = SimpleHttpOperator(
+		task_id='t03_extracting_user',
 		http_conn_id='user_api',
 		endpoint='api/',
 		method='GET',
@@ -75,19 +79,19 @@ with DAG('user_processing',
 	)
 
 	# TASK: Processing Users (the json returned from the API)
-	processing_user = PythonOperator(
-		task_id='processing_user',
+	t04_processing_user = PythonOperator(
+		task_id='t04_processing_user',
 		python_callable=_processing_user
 	)
 
 	# TASK: Store the User in the Table wih Bash
-	storing_user = BashOperator(
-		task_id='storing_user',
+	t05_storing_user = BashOperator(
+		task_id='t05_storing_user',
 		bash_command='echo -e ".separator ","\n.import /tmp/processed_user.csv users" | sqlite3 /opt/airflow/database/sqlite/airflow.db'
 	)
 
 
 	# Setting dependencies
-	creating_table >> is_api_available >> extracting_user >> processing_user >> storing_user
+	t01_creating_table >> t02_is_api_available >> t03_extracting_user >> t04_processing_user >> t05_storing_user
 
 

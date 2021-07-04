@@ -1,7 +1,8 @@
 from airflow.models import DAG # Import the DAG Object
-from airflow.providers.sqlite.operators.sqlite import SqliteOperator
+
 from airflow.providers.http.sensors.http import HttpSensor
 from airflow.providers.http.operators.http import SimpleHttpOperator
+from airflow.providers.sqlite.operators.sqlite import SqliteOperator
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 
@@ -15,7 +16,12 @@ default_args = {
 
 
 def _check_data(ti):
-	response = ti.xcom_pull(task_ids=['getting_data'])
+	response = ti.xcom_pull(task_ids=['t02_getting_data'])
+	if response['status'] == "I'm alive and kicking!!":
+		print('Alive Match')
+	else:
+		print('Reponse is niet "Alive..."....')
+		print(response['status'])
 
 
 
@@ -23,20 +29,20 @@ with DAG('corlido_check_api_dbg_endpoint',
 	schedule_interval='@daily',
 	default_args=default_args,
 	catchup=False,
-	tags=['corlido']
+	tags=['corlido', 'bert']
 	) as dag:
 
 	# TASK: Is API available
-	is_api_available = HttpSensor(
-		task_id='is_api_available',
+	t01_api_available = HttpSensor(
+		task_id='t01_api_available',
 		http_conn_id='corlido_cops_dev_droplet',
 		endpoint='dbg'
 	)
 
 
 	#TASK: Extract the Data
-	getting_data = SimpleHttpOperator(
-		task_id='getting_data',
+	t02_getting_data = SimpleHttpOperator(
+		task_id='t02_getting_data',
 		http_conn_id='corlido_cops_dev_droplet',
 		endpoint='dbg',
 		method='GET',
@@ -47,18 +53,13 @@ with DAG('corlido_check_api_dbg_endpoint',
 
 
 	# TASK: Check Data Validity
-	processing_data = PythonOperator(
-		task_id='check_data',
+	t03_processing_data = PythonOperator(
+		task_id='t03_processing_data',
 		python_callable=_check_data
 	)
 
 
-	# TASK: Dummy Debug
-	dummy = BashOperator(
-		task_id='zork',
-		bash_command='echo "Hello World"'
-	)
 
 
 
-	is_api_available >> getting_data >> processing_data >> dummy
+	t01_api_available >> t02_getting_data >> t03_processing_data

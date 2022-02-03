@@ -9,7 +9,7 @@ services:
     volumes:
       - ./data:/var/lib/postgresql/data
     ports:
-      - "8002:5432"
+      - "8102:5432"
     environment:
       POSTGRES_PASSWORD: root
       POSTGRES_USER: root

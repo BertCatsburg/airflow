@@ -1,5 +1,6 @@
 from airflow.models import DAG
 from airflow.operators.python import PythonOperator
+from python_packages.testpackage.sayHello import sayhello
 
 args = {
     'owner': 'Bert',
@@ -14,7 +15,7 @@ dag = DAG('PythonHelloWorld',
           )
 
 with dag:
-    sayHelloWorldTask = BashOperator(
-        task_id='HW-Test',
-        bash_command='echo "Hello World to you too"'
+    sayHelloWorldTask = PythonOperator(
+        task_id='Hello-World-from-Python',
+        python_callable=sayhello
     )

@@ -1,6 +1,6 @@
 from airflow.models import DAG
 from airflow.operators.python import PythonOperator
-from python_packages.testpackage.sayHello import sayhello
+from testpackage.sayHello import sayhello
 
 args = {
     'owner': 'Bert',

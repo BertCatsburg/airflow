@@ -1,1 +1,1 @@
-from python_packages.testpackage.sayHello import sayhello
+from testpackage.sayHello import sayhello

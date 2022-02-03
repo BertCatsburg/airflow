@@ -16,6 +16,6 @@ services:
       POSTGRES_DB: mydatabase
 
 networks:
-  cops-net:
+  default:
     external: true
     name: my-net

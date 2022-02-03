@@ -1,0 +1,21 @@
+version: '3.9'
+
+services:
+
+  db:
+    image: postgres:latest
+    restart: "no"
+    container_name: OtherDatabase
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    ports:
+      - "8002:5432"
+    environment:
+      POSTGRES_PASSWORD: root
+      POSTGRES_USER: root
+      POSTGRES_DB: mydatabase
+
+networks:
+  cops-net:
+    external: true
+    name: my-net
